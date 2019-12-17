@@ -1,0 +1,16 @@
+.square {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  margin: 2px;
+}
+
+/* red className colors button red */
+.red {
+  background-color: red;
+}
+
+/* yellow className colors button yellow */
+.yellow {
+  background-color: yellow;
+}
