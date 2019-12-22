@@ -1,20 +1,27 @@
 .title {
-  font-size: 1.7em;
   font-weight: bold;
-  height: 100%;
   text-align: center;
+  width: 700px;
+  margin: auto;
+  outline: solid black 3px;
+  border-bottom: 0;
+  margin-bottom: 0;
+  background-color: #000080;
 }
 
 h3 {
+  font-size: 3em;
+  font-family: "Anton";
   color: white;
   margin-bottom: 0;
-}
-
-h6 {
-  outline: solid white 1px;
-  width: 100%;
   margin-top: 0;
+}
+h6 {
+  margin-top: 0;
+  margin-bottom: 0;
   color: black;
+  font-family: "Nanum Pen Script";
+  font-size: 1.7em;
 }
 
 .red-turn {

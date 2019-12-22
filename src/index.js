@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import Title from "./components/title";
 import Board from "./components/board";
 import HistoryButton from "./components/historyButton";
 
@@ -290,13 +291,27 @@ class Game extends React.Component {
       historyIndex: 0
     });
   }
-
+  /*
+        <div className="top-row">
+          <Title
+            className=""
+            isRedTurn={this.state.isRedTurn}
+            isGameWon={this.state.isGameWon}
+          />
+        </div>
+*/
   render() {
     const history = this.state.history;
     const currentBoard = history[this.state.historyIndex].currentBoard;
     return (
       <div className="game">
+        <Title
+          className=""
+          isRedTurn={this.state.isRedTurn}
+          isGameWon={this.state.isGameWon}
+        />
         <Board
+          className=""
           currentBoard={currentBoard}
           history={this.state.history}
           historyIndex={this.state.historyIndex}
@@ -304,6 +319,7 @@ class Game extends React.Component {
           isRedTurn={this.state.isRedTurn}
           squareClicked={(row, col) => this.squareClicked(row, col)}
         />
+
         <HistoryButton
           className="historyButton"
           jumpBackwards={() => this.jumpBackwards()}

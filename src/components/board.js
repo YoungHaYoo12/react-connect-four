@@ -1,6 +1,5 @@
 import React from "react";
 import Square from "./square";
-import Title from "./title";
 import "./board.css";
 
 // connect-four board
@@ -18,12 +17,6 @@ class Board extends React.Component {
   render() {
     return (
       <div className="board-wrapper">
-        <div className="top-row">
-          <Title
-            isRedTurn={this.props.isRedTurn}
-            isGameWon={this.props.isGameWon}
-          />
-        </div>
         <div className="row">
           {this.renderSquare(0, 0)}
           {this.renderSquare(0, 1)}
