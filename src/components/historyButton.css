@@ -1,0 +1,30 @@
+.historyButton {
+  font-size: 3em;
+  border-radius: 20%;
+}
+
+.resetButtonHidden {
+  margin-right: auto;
+  visibility: hidden;
+}
+
+.resetButton {
+  margin-left: auto;
+}
+
+.historyButton:hover {
+  background-color: black;
+  color: white;
+}
+
+.historyButtons {
+  width: 700px;
+  margin: auto;
+  border: solid black 1px;
+  border-top: 0px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background-color: #000080;
+
+  display: flex;
+}

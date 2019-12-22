@@ -5,6 +5,10 @@
   margin: 2px;
 }
 
+.square:hover {
+  background-color: #9fbfdf;
+}
+
 /* red className colors button red */
 .red {
   background-color: red;

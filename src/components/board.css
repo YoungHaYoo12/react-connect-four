@@ -1,8 +1,8 @@
 .board-wrapper {
   width: 700px;
   height: 700px;
-  border: solid black 1px;
-  border-top: 0px;
+  border-left: solid black 1px;
+  border-right: solid black 1px;
   margin: auto;
   background-color: #000080;
 }
