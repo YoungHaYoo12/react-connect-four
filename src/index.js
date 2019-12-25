@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import Title from "./components/title";
 import Board from "./components/board";
 import HistoryButton from "./components/historyButton";
+//https://webplatform.github.io/docs/tutorials/css_animations/
 
 import "./styles.css";
 
@@ -318,6 +319,7 @@ class Game extends React.Component {
           isGameWon={this.state.isGameWon}
           isRedTurn={this.state.isRedTurn}
           squareClicked={(row, col) => this.squareClicked(row, col)}
+          topRowFilledInCol={(row, col) => this.topRowFilledInCol(row, col)}
         />
 
         <HistoryButton

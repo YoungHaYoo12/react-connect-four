@@ -10,6 +10,7 @@ class Board extends React.Component {
       <Square
         value={this.props.currentBoard[row][col]}
         onClick={() => this.props.squareClicked(row, col)}
+        isRedTurn={this.props.isRedTurn}
       />
     );
   }

@@ -5,10 +5,17 @@
   display: block;
   margin-left: 1%;
   margin-right: 1%;
+  cursor: pointer;
 }
 
-.square:hover {
-  background-color: #9fbfdf;
+/* colors squares that user hovers over when red turn */
+.opaqueRed:hover {
+  background-color: red;
+}
+
+/* colors squares that user hovers over when yellow turn */
+.opaqueYellow:hover {
+  background-color: yellow;
 }
 
 /* red className colors button red */
