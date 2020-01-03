@@ -4,7 +4,7 @@ import "./board.css";
 
 // connect-four board
 class Board extends React.Component {
-  // function to render square with row and col values
+  // function to render a square with row and col values
   renderSquare(row, col) {
     return (
       <Square

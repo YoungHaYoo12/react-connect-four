@@ -1,0 +1,35 @@
+.historyButton {
+  font-size: 3em;
+  border-radius: 20%;
+  cursor: pointer;
+}
+
+.historyButton:hover {
+  background-color: black;
+  color: white;
+}
+
+.allButtonsContainer {
+  width: 700px;
+  border: solid black 3px;
+  margin: auto;
+  display: flex;
+  justify-content: space-evenly;
+  background-color: #000080;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.gameModeButton {
+  font-size: 2em;
+  cursor: pointer;
+}
+
+.gameModeButton:hover {
+  background-color: black;
+  color: white;
+}
+
+.gameModeButtons {
+  display: flex;
+}

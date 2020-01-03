@@ -1,0 +1,31 @@
+.gameLevels {
+  width: 700px;
+  margin: auto;
+  border-left: solid black 3px;
+  border-right: solid black 3px;
+  display: flex;
+}
+
+.easyLevel {
+  background-color: yellow;
+}
+
+.normalLevel {
+  background-color: orange;
+}
+
+.hardLevel {
+  background-color: red;
+}
+
+.level {
+  flex: 1;
+  border: none;
+  font-family: "Anton";
+  cursor: pointer;
+}
+
+/* for disabling level buttons */
+.level:disabled {
+  cursor: not-allowed;
+}

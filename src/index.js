@@ -2,10 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom";
 import Title from "./components/title";
 import Board from "./components/board";
-import HistoryButton from "./components/historyButton";
-//https://webplatform.github.io/docs/tutorials/css_animations/
-
+import GameButton from "./components/gameButton";
+import GameLevel from "./components/gameLevel";
 import "./styles.css";
+const AI = require("./AI.js");
+const BoardFunctions = require("./BoardHelperFunctions.js");
 
 class Game extends React.Component {
   constructor(props) {
@@ -32,51 +33,19 @@ class Game extends React.Component {
       isRedTurn: true,
       // boolean to record whether game has been won
       isGameWon: false,
-      // records which board entry in history should be displayed
-      historyIndex: 0
+      // boolean to record whether game has been tied
+      isGameTied: false,
+      // int to record which board entry in history to display
+      historyIndex: 0,
+      // boolean to record whether it is 2-player mode of CPU mode
+      isCPUMode: true,
+      // integer choosing level of game (by changing depth of minimax algorithm) (easy:2,normal:4,hard:7)
+      difficultyLevel: 4
     };
   }
 
-  // helper function to check top row currently filled in column
-  topRowFilledInCol(row, col) {
-    let currRow;
-
-    // retrieve index of top row of column
-    for (currRow = 0; currRow < this.numOfRows; currRow++) {
-      if (
-        this.state.history[this.state.historyIndex].currentBoard[currRow][col]
-      ) {
-        return currRow;
-      }
-    }
-
-    return currRow;
-  }
-
-  // update function for when square is clicked
-  squareClicked(row, col) {
-    // return from function if square has already been clicked or if
-    // game has been won
-    if (
-      this.state.history[this.state.historyIndex].currentBoard[row][col] !=
-        null ||
-      this.state.isGameWon
-    )
-      return;
-
-    // update currentBoard array element color
-    const currentBoard = this.state.history[
-      this.state.historyIndex
-    ].currentBoard.map(function(arr) {
-      return arr.slice();
-    });
-    const topRow = this.topRowFilledInCol(row, col);
-    if (this.state.isRedTurn) {
-      currentBoard[topRow - 1][col] = "red";
-    } else {
-      currentBoard[topRow - 1][col] = "yellow";
-    }
-
+  // helper function to add currentBoard to the history array
+  updateHistory(currentBoard) {
     /* add current board to history and increment history index
      *** if historyIndex is less than historyLength-1, it 
      means that a move has been played after the user has 
@@ -90,164 +59,80 @@ class Game extends React.Component {
       history = this.state.history.splice(0, historyIndex + 1);
     }
 
+    return history.concat([{ currentBoard: currentBoard }]);
+  }
+
+  /* helper function to update the game status (won, tied, continue play)
+  takes in the top row and the column (where the piece was inserted)
+  as arguments */
+  updateGameStatus(topRow, col) {
+    let currentBoard = this.state.history[this.state.historyIndex].currentBoard;
+    // win check
+    if (
+      BoardFunctions.generalWinner(currentBoard, "red") ||
+      BoardFunctions.generalWinner(currentBoard, "yellow")
+    ) {
+      this.setState({ isGameWon: true });
+    }
+    /*    if (BoardFunctions.specificCheckWinner(currentBoard, topRow - 1, col)) {
+      this.setState({ isGameWon: true });
+    } */
+    // tie check
+    else if (BoardFunctions.isBoardFilled(currentBoard)) {
+      this.setState({ isGameTied: true });
+    }
+    // change turn; if red turn ended, call aiTurn
+    else {
+      const isRedTurn = !this.state.isRedTurn;
+      this.setState({ isRedTurn: isRedTurn }, function() {
+        // checks if CPU Mode AND if it is yellow's (CPU) turn
+        if (this.state.isCPUMode && !isRedTurn) {
+          const AIIndex = AI.aiTurn(currentBoard, this.state.difficultyLevel);
+          this.squareClicked(AIIndex[0], AIIndex[1]);
+        }
+      });
+    }
+  }
+
+  // update function for when square is clicked
+  squareClicked(row, col) {
+    // return from function if square has already been clicked or if game over
+    if (
+      this.state.history[this.state.historyIndex].currentBoard[row][col] !=
+        null ||
+      this.state.isGameWon ||
+      this.state.isGameTied
+    )
+      return;
+
+    // update board and history
+    let currentBoard = this.state.history[this.state.historyIndex].currentBoard;
+    currentBoard = BoardFunctions.copyOfBoard(currentBoard);
+    const topRow = BoardFunctions.topRowFilledInCol(currentBoard, row, col);
+
+    // color used by updateBoard() to color square red (+1), yellow (-1), or null (0)
+    let color;
+    if (this.state.isRedTurn) {
+      color = +1;
+    } else if (!this.state.isRedTurn) {
+      color = -1;
+    }
+
+    const updatedBoard = BoardFunctions.updateBoard(
+      currentBoard,
+      topRow,
+      col,
+      color
+    );
+    const history = this.updateHistory(updatedBoard);
+
     this.setState(
       {
-        history: history.concat([{ currentBoard: currentBoard }]),
-        historyIndex: historyIndex + 1
+        history: history,
+        historyIndex: this.state.historyIndex + 1
       },
-      // check for winner; if no winner, update whose turn it is
-      function() {
-        if (this.checkWinner(topRow - 1, col)) {
-          this.setState({ isGameWon: true });
-        } else {
-          const isRedTurn = !this.state.isRedTurn;
-          this.setState({ isRedTurn: isRedTurn });
-        }
-      }
-    );
-  }
 
-  // helper function for checkWinner() in checking column 4-in-a-rows
-  checkColWinner(row, col) {
-    // if index out of bounds, return false
-    if (row + 3 > this.numOfRows - 1) return false;
-
-    const currentBoard = this.state.history[this.state.historyIndex]
-      .currentBoard;
-
-    // check if there is a 4-in-a-row downwards
-    if (
-      currentBoard[row][col] != null &&
-      currentBoard[row][col] === currentBoard[row + 1][col] &&
-      currentBoard[row][col] === currentBoard[row + 2][col] &&
-      currentBoard[row][col] === currentBoard[row + 3][col]
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  // helper function for checkWinner() in checking row 4-in-a-rows
-  checkRowWinner(row, col) {
-    const currentBoard = this.state.history[this.state.historyIndex]
-      .currentBoard;
-
-    // check if there is a 4-in-a-row in the following row
-    for (let currCol = 0; currCol < this.numOfCols - 3; currCol++) {
-      if (
-        currentBoard[row][currCol] != null &&
-        currentBoard[row][currCol] === currentBoard[row][currCol + 1] &&
-        currentBoard[row][currCol] === currentBoard[row][currCol + 2] &&
-        currentBoard[row][currCol] === currentBoard[row][currCol + 3]
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /* helper function for checkDiagonalWinner() to get starting row,col
-  index of diagonal A (top left to bottom right direction) */
-  findStartIndexOfDiagonalA(row, col) {
-    while (row !== 0 && col !== 0) {
-      row--;
-      col--;
-    }
-    return [row, col];
-  }
-  /* helper function for checkDiagonalWinner() to get starting row,col
-  index of diagonal B (bottom left to top right direction) */
-  findStartIndexOfDiagonalB(row, col) {
-    while (row !== this.numOfRows - 1 && col !== 0) {
-      row++;
-      col--;
-    }
-    return [row, col];
-  }
-
-  /* helper function for checkDiagonalWinner() to check if row,col indices 
-  are in range*/
-  indexInRange(row, col) {
-    return row < this.numOfRows && row >= 0 && col < this.numOfCols && col >= 0;
-  }
-
-  /* helper function for checkDiagonalWinner() to check for 4-in-a-rows in 
-  boolean array */
-  checkFourInARow(booleanArray) {
-    // iterate through boolean array to determine if there are 4
-    // trues in a row
-    let booleanCounter = 0;
-
-    for (let i = 0; i < this.maxPossibleEntriesInDiagonal; i++) {
-      if (booleanArray[i] === true) {
-        booleanCounter++;
-      } else {
-        booleanCounter = 0;
-      }
-
-      // check if 4-in-a-row has appeared
-      if (booleanCounter >= 4) return true;
-    }
-
-    return false;
-  }
-
-  // helper function for checkWinner() in checking diagonal 4-in-a-rows
-  checkDiagonalWinner(row, col) {
-    const currentBoard = this.state.history[this.state.historyIndex]
-      .currentBoard;
-    /* boolean array to record color matches for diagonal A
-    (top left to bottom right direction) and diagonal B (bottom
-      left to top right) */
-    const diagonalA = [];
-    const diagonalB = [];
-
-    /* push true into diagonalA if color match at currRow,currCol with
-    color at row,col*/
-    let currRow = this.findStartIndexOfDiagonalA(row, col)[0];
-    let currCol = this.findStartIndexOfDiagonalA(row, col)[1];
-
-    for (let index = 0; index < this.maxPossibleEntriesInDiagonal; index++) {
-      if (
-        this.indexInRange(currRow, currCol) &&
-        currentBoard[row][col] === currentBoard[currRow][currCol]
-      ) {
-        diagonalA.push(true);
-      } else {
-        diagonalA.push(false);
-      }
-      currRow++;
-      currCol++;
-    }
-
-    /* push true into diagonalB if color match at currRow,currCol with
-    color at row,col*/
-    currRow = this.findStartIndexOfDiagonalB(row, col)[0];
-    currCol = this.findStartIndexOfDiagonalB(row, col)[1];
-
-    for (let index = 0; index < this.maxPossibleEntriesInDiagonal; index++) {
-      if (
-        this.indexInRange(currRow, currCol) &&
-        currentBoard[row][col] === currentBoard[currRow][currCol]
-      ) {
-        diagonalB.push(true);
-      } else {
-        diagonalB.push(false);
-      }
-      currRow--;
-      currCol++;
-    }
-
-    // check if 4-in-a-row has appeared in diagonalA or diagonalB
-    return this.checkFourInARow(diagonalA) || this.checkFourInARow(diagonalB);
-  }
-
-  // check if there is a winner (four-in-a-row)
-  checkWinner(row, col) {
-    return (
-      this.checkColWinner(row, col) ||
-      this.checkRowWinner(row, col) ||
-      this.checkDiagonalWinner(row, col)
+      () => this.updateGameStatus(topRow, col)
     );
   }
 
@@ -255,7 +140,8 @@ class Game extends React.Component {
   jumpBackwards() {
     // return if historyIndex would go out of range or if game has been won
     const historyIndex = this.state.historyIndex - 1;
-    if (historyIndex < 0 || this.state.isGameWon) return;
+    if (historyIndex < 0 || this.state.isGameWon || this.state.isGameTied)
+      return;
 
     this.setState({
       historyIndex: this.state.historyIndex - 1,
@@ -267,7 +153,11 @@ class Game extends React.Component {
   jumpForwards() {
     // return if historyIndex would go out of range or if game has been won
     const historyIndex = this.state.historyIndex + 1;
-    if (historyIndex > this.state.history.length - 1 || this.state.isGameWon)
+    if (
+      historyIndex > this.state.history.length - 1 ||
+      this.state.isGameWon ||
+      this.state.isGameTied
+    )
       return;
 
     this.setState({
@@ -289,44 +179,59 @@ class Game extends React.Component {
       ],
       isRedTurn: true,
       isGameWon: false,
+      isGameTied: false,
       historyIndex: 0
     });
   }
-  /*
-        <div className="top-row">
-          <Title
-            className=""
-            isRedTurn={this.state.isRedTurn}
-            isGameWon={this.state.isGameWon}
-          />
-        </div>
-*/
+
+  // function for gameModeButton to allow user to select CPU mode
+  selectCPUMode() {
+    this.setState({ isCPUMode: true });
+    this.reset();
+  }
+
+  // function for gameModeButton to allow user to select 2 player mode
+  selectTwoPlayerMode() {
+    this.setState({ isCPUMode: false });
+    this.reset();
+  }
+
+  // function to change game levels via GameLevel
+  changeGameLevel(difficultyLevel) {
+    this.setState({ difficultyLevel: difficultyLevel });
+    this.reset();
+  }
+
   render() {
     const history = this.state.history;
     const currentBoard = history[this.state.historyIndex].currentBoard;
     return (
       <div className="game">
         <Title
-          className=""
           isRedTurn={this.state.isRedTurn}
           isGameWon={this.state.isGameWon}
+          isGameTied={this.state.isGameTied}
         />
         <Board
-          className=""
           currentBoard={currentBoard}
           history={this.state.history}
           historyIndex={this.state.historyIndex}
           isGameWon={this.state.isGameWon}
           isRedTurn={this.state.isRedTurn}
           squareClicked={(row, col) => this.squareClicked(row, col)}
-          topRowFilledInCol={(row, col) => this.topRowFilledInCol(row, col)}
         />
-
-        <HistoryButton
-          className="historyButton"
+        <GameLevel
+          changeToEasy={() => this.changeGameLevel(2)}
+          changeToNormal={() => this.changeGameLevel(4)}
+          changeToHard={() => this.changeGameLevel(7)}
+          isCPUMode={this.state.isCPUMode}
+        />
+        <GameButton
           jumpBackwards={() => this.jumpBackwards()}
           jumpForwards={() => this.jumpForwards()}
           reset={() => this.reset()}
+          selectCPUMode={() => this.selectCPUMode()}
+          selectTwoPlayerMode={() => this.selectTwoPlayerMode()}
         />
       </div>
     );
